@@ -7,7 +7,6 @@ import pe.edu.cibertec.DAAII_T1_GAGO_ENZO.model.bd.Rol;
 import pe.edu.cibertec.DAAII_T1_GAGO_ENZO.model.bd.Usuario;
 import pe.edu.cibertec.DAAII_T1_GAGO_ENZO.repository.RolRepository;
 import pe.edu.cibertec.DAAII_T1_GAGO_ENZO.repository.UsuarioRepository;
-import pe.edu.cibertec.DAAII_T1_GAGO_ENZO.util.RandomPassword;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -19,7 +18,7 @@ public class UsuarioService implements IUsuarioService {
 
     private UsuarioRepository usuarioRepository;
     private RolRepository rolRepository;
-    private RandomPassword randomPassword;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public Usuario buscarUsuarioXNomUsuario(String nomusuario) {
@@ -27,8 +26,6 @@ public class UsuarioService implements IUsuarioService {
     }
     @Override
     public Usuario guardarUsuario(Usuario usuario) {
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
         usuario.setPassword(passwordEncoder.encode(
                 usuario.getPassword()));
         usuario.setActivo(true);
@@ -37,20 +34,12 @@ public class UsuarioService implements IUsuarioService {
 
         return usuarioRepository.save(usuario);
     }
+    @Override
+    public Usuario cambiarContrasena(String username, String newPassword) {
+        Usuario usuario = buscarUsuarioXNomUsuario(username);
+        usuario.setPassword(passwordEncoder.encode(newPassword));
+        return guardarUsuario(usuario);
+    }
 
-    @Override
-    public void actualizarUsuario(Usuario usuario) {
-        usuarioRepository.actualizarUsuario(
-                usuario.getNombres(),usuario.getApellidos(),
-                usuario.getActivo(),usuario.getIdusuario()
-        );
-    }
-    @Override
-    public List<Usuario> listarUsuario() {
-        return usuarioRepository.findAll();
-    }
-    @Override
-    public Usuario buscarUsuarioXIdUsuario(Integer idusuario) {
-        return usuarioRepository.findById(idusuario).orElse(null);
-    }
+
 }

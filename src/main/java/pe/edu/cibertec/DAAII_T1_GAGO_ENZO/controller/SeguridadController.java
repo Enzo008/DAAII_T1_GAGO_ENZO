@@ -1,12 +1,12 @@
 package pe.edu.cibertec.DAAII_T1_GAGO_ENZO.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import pe.edu.cibertec.DAAII_T1_GAGO_ENZO.model.bd.Usuario;
-import pe.edu.cibertec.DAAII_T1_GAGO_ENZO.model.dto.ResultadoDto;
-import pe.edu.cibertec.DAAII_T1_GAGO_ENZO.model.dto.UsuarioDto;
 import pe.edu.cibertec.DAAII_T1_GAGO_ENZO.service.UsuarioService;
 
 import java.util.List;
@@ -18,49 +18,30 @@ public class SeguridadController {
 
     public UsuarioService usuarioService;
 
-    @GetMapping("/usuario")
+    @GetMapping("/change-password")
     public String frmMantUsuario(Model model){
-        model.addAttribute("listaUsuarios",
-                usuarioService.listarUsuario());
-        return "seguridad/formusuario";
+        return "seguridad/frmcambiarpassword";
     }
 
-    @PostMapping("/usuario")
-    @ResponseBody
-    public ResultadoDto registrarUsuario(@RequestBody UsuarioDto usuarioDto){
-        String mensaje = "Usuario registrado correctamente";
-        boolean respuesta = true;
+    @PostMapping("/change-password")
+    public String cambiarContraseña(@RequestParam("password") String password, @RequestParam("confirmPassword") String confirmPassword, HttpServletRequest request){
+        if(password.equals(confirmPassword)){
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth.getName();
+            usuarioService.cambiarContrasena(username, password);
 
-        try{
-            Usuario usuario = new Usuario();
-            usuario.setNombres(usuarioDto.getNombres());
-            usuario.setApellidos(usuarioDto.getApellidos());
-            if (usuarioDto.getIdusuario() > 0) {
-                usuario.setIdusuario(usuarioDto.getIdusuario());
-                usuario.setActivo(usuarioDto.getActivo());
-                usuarioService.actualizarUsuario(usuario);
-            } else {
-                usuario.setNomusuario(usuarioDto.getNomusuario());
-                usuario.setEmail(usuarioDto.getEmail());
-                usuarioService.guardarUsuario(usuario);
-            }
-        } catch (Exception ex) {
-            mensaje = "Usuario no registrado";
-            respuesta = false;
+            // Invalidar la sesión y redirigir al usuario a la página de inicio de sesión
+            request.getSession().invalidate();
+            return "redirect:/auth/login";
+        } else {
+            // Las contraseñas no coinciden
+            request.setAttribute("error", "Las contraseñas no coinciden");
+            return "seguridad/frmcambiarpassword";
         }
-
-        return ResultadoDto.builder().mensaje(mensaje).respuesta(respuesta).build();
     }
 
-    @GetMapping("/usuario/{id}")
-    @ResponseBody
-    public Usuario frmMantUsuario(@PathVariable("id") int id){
-        return usuarioService.buscarUsuarioXIdUsuario(id);
-    }
 
-    @GetMapping("/usuario/lista")
-    @ResponseBody
-    public List<Usuario> listaUsuario(){
-        return usuarioService.listarUsuario();
-    }
+
+
+
 }

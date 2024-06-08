@@ -8,7 +8,5 @@ public interface IUsuarioService {
 
     Usuario buscarUsuarioXNomUsuario(String nomusuario);
     Usuario guardarUsuario(Usuario usuario);
-    void actualizarUsuario(Usuario usuario);
-    List<Usuario> listarUsuario();
-    Usuario buscarUsuarioXIdUsuario(Integer idusuario);
+    Usuario cambiarContrasena(String username, String newPassword);
 }
